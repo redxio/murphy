@@ -1,0 +1,16 @@
+{
+    "log": "webcrawler.log",
+    "dir": ".",
+    "fileTypes": ["html", "jpg", "png"],
+    "headless": true,
+    "proxy": {
+        "protocol": "socks5",
+        "address": "127.0.0.1",
+        "port": "1080"
+    },
+    "option": {
+        "depth": 2,
+        "maxConcurrency": 99,
+        "externalWebpages": false
+    }
+}
