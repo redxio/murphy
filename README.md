@@ -1,12 +1,14 @@
-# Webrainer
-
 ## Introduction
 
-Webrainer is a web crawler implemented using golang, which support concurrency crawling, it also supports crawling javascript-based dynamic webpages by enabling headless chrome mode.
+Murphy is a web crawler implemented using golang, which support concurrency crawling a variety of resources on web, it also supports crawling javascript-based dynamic webpages by enabling headless chrome mode.
 
 ## Installation
 
-> $ go get -u github.com/NzKSO/webcrawler
+> $ go get -u github.com/NzKSO/murphy
+
+## TODO
+
+filter and DOM event handler
 
 ## License
 
