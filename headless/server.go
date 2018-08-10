@@ -133,11 +133,11 @@ loop:
 	defer conn.Close()
 
 	client := cdp.NewClient(conn)
-	domLoadFired, err := client.Page.DOMContentEventFired(ctx)
+	domContentFired, err := client.Page.DOMContentEventFired(ctx)
 	if err != nil {
 		return "", err
 	}
-	defer domLoadFired.Close()
+	defer domContentFired.Close()
 	if err = client.Page.Enable(ctx); err != nil {
 		return "", err
 	}
@@ -146,7 +146,7 @@ loop:
 	if _, err = client.Page.Navigate(ctx, navArgs); err != nil {
 		return "", err
 	}
-	if _, err = domLoadFired.Recv(); err != nil {
+	if _, err = domContentFired.Recv(); err != nil {
 		return "", err
 	}
 	doc, err := client.DOM.GetDocument(ctx, nil)

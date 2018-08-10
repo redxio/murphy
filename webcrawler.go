@@ -31,7 +31,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/NzKSO/webcrawler/headless"
+	"github.com/NzKSO/murphy/headless"
 
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/htmlindex"
@@ -397,9 +397,7 @@ func main() {
 				}
 				invalid++
 				if invalid == len(flag.Args()) {
-					if config.opt.depth > 0 {
-						close(urlTopoCh)
-					}
+					close(urlTopoCh)
 					return
 				}
 				continue
@@ -408,7 +406,7 @@ func main() {
 				u.Fragment = ""
 			}
 			urlString := u.String()
-			if _, loaded := crawledURL.LoadOrStore(urlString, true); !loaded && config.opt.depth > 0 {
+			if _, loaded := crawledURL.LoadOrStore(urlString, true); !loaded {
 				outputCh <- &output{"Fetching " + urlString, false}
 				urlTopoCh <- &urlTopological{u, config.opt.depth}
 			}
@@ -543,7 +541,6 @@ func crawl(crawler *crawler, depth int, server *headless.Server) {
 		}
 		if err = parseHTML(rd, crawler, dir); err != nil {
 			outputCh <- &output{err, false}
-			return
 		}
 	default:
 		if ext, ok := matchExtsWithMIME(MIME, crawler.config.fileTypes); ok {
@@ -551,8 +548,6 @@ func crawl(crawler *crawler, depth int, server *headless.Server) {
 			if err := writeFile(resp.Body, dir, getFileName(crawler.rootURL.Path, ext)); err != nil {
 				outputCh <- &output{err, false}
 			}
-		} else if err != nil {
-			outputCh <- &output{err, false}
 		}
 	}
 }
