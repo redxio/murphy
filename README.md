@@ -1,6 +1,6 @@
 ## Introduction
 
-Murphy is a web crawler implemented using golang, which support concurrency crawling a variety of resources on web, it also supports crawling javascript-based dynamic webpages by enabling headless chrome mode.
+Murphy is a web crawler implemented using golang, which supports to crawl a variety of resources on web concurrently, it can also be used to crawling javascript-based dynamic webpages by enabling chrome headless mode.
 
 ## Installation
 
