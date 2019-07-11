@@ -48,10 +48,10 @@ func getFreePort() (int, error) {
 // Start starts headless Chrome browser
 func (ser *Server) Start() error {
 	if ser == nil {
-		return errors.New("The server instance is not created")
+		return errors.New("the server instance was not created")
 	}
 	if ser.cmd != nil {
-		return errors.New("The server is already running")
+		return errors.New("the server is already running")
 	}
 	var executablePath string
 label:
@@ -65,7 +65,7 @@ label:
 				break label
 			}
 		}
-		return errors.New("Can't find Chrome on your Linux system")
+		return errors.New("can't find Chrome on your Linux system")
 	case "windows":
 		path, err := exec.LookPath("chrome.exe")
 		if err == nil {
@@ -77,14 +77,14 @@ label:
 			executablePath = path
 			break
 		}
-		return errors.New("Can't find Chrome on your Windows system")
+		return errors.New("can't find Chrome on your Windows system")
 	case "darwin":
 		path, err := exec.LookPath(`/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`)
 		if err == nil {
 			executablePath = path
 			break label
 		}
-		return errors.New("Can't find Chrome on your MacOS system")
+		return errors.New("can't find Chrome on your MacOS system")
 	}
 
 	if port, err := getFreePort(); err == nil {
@@ -106,10 +106,10 @@ label:
 // GetWebpageSourceCode get html source code for webpage, including javascript-based dynamic webpage
 func (ser *Server) GetWebpageSourceCode(ctx context.Context, url string) (string, error) {
 	if ser == nil {
-		return "", errors.New("The server instance is not created")
+		return "", errors.New("the server instance was not created")
 	}
 	if ser.cmd == nil {
-		return "", errors.New("The headless Chrome is not running")
+		return "", errors.New("the headless Chrome is not running")
 	}
 	var target *devtool.Target
 	var err error
@@ -165,10 +165,10 @@ loop:
 // Stop kills spawned background child process
 func (ser *Server) Stop() error {
 	if ser == nil {
-		return errors.New("The server instance is not created")
+		return errors.New("the server instance is not created")
 	}
 	if ser.cmd == nil {
-		return errors.New("The headless Chrome is not running")
+		return errors.New("the headless Chrome is not running")
 	}
 	return syscall.Kill(-ser.cmd.Process.Pid, syscall.SIGKILL)
 }

@@ -1,16 +1,16 @@
 {
-    "log": "webcrawler.log",
-    "dir": ".",
-    "fileTypes": ["html", "jpg", "png"],
-    "headless": true,
-    "proxy": {
-        "protocol": "socks5",
-        "address": "127.0.0.1",
-        "port": "1080"
+    "log": "/tmp/murphy/murphy.log",
+    "dir": "/tmp/murphy",
+    "fileTypes": ["jpg", "png"],
+    "disableCookie": false,
+    "headless": {
+        "enable": true,
+        "timeout": 15
     },
     "option": {
         "depth": 2,
-        "maxConcurrency": 99,
+        "maxConcurrency": 4,
         "externalWebpages": false
-    }
+    },
+    "userAgent": "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0"
 }
