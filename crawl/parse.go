@@ -42,8 +42,8 @@ func (crawler *Crawler) parseHTML(rd io.Reader, urlTopo *URLTopological, dir str
 
 	var (
 		depth int
-		tt html.TokenType
-		tz = html.NewTokenizer(rd)
+		tt    html.TokenType
+		tz    = html.NewTokenizer(rd)
 	)
 
 	for {
@@ -94,9 +94,9 @@ func (crawler *Crawler) parseHTML(rd io.Reader, urlTopo *URLTopological, dir str
 							actualURL.Fragment = ""
 						}
 
-						actualurl := actualURL.String()
-						if _, loaded := crawler.crawledURL.LoadOrStore(actualurl, true); !loaded {
-							crawler.Logger.Printf("Found new url %q on %s\n", actualurl, urlTopo.URL.String())
+						httpurl := actualURL.String()
+						if _, loaded := crawler.crawledURL.LoadOrStore(httpurl, true); !loaded {
+							crawler.Logger.Printf("Found new url %q on %s\n", httpurl, urlTopo.URL.String())
 							if urlTopo.Depth != -1 {
 								crawler.URLTopoCh <- &URLTopological{actualURL, urlTopo.Depth - 1}
 							} else {
@@ -128,19 +128,16 @@ func (crawler *Crawler) parseHTML(rd io.Reader, urlTopo *URLTopological, dir str
 							actualURL.Fragment = ""
 						}
 
-						if _, loaded := crawler.crawledURL.LoadOrStore(actualURL.String(), true); loaded {
+						httpurl := actualURL.String()
+						if _, loaded := crawler.crawledURL.LoadOrStore(httpurl, true); loaded {
 							break
 						}
 
-						req, err := http.NewRequest(http.MethodGet, actualURL.String(), nil)
+						req, err := createRequest(http.MethodGet, httpurl, crawler.config.UserAgent, nil)
 						if err != nil {
-							crawler.Logger.Printf("Error creating HTTP request: %v\n", err)
-							break
+							crawler.Logger.Printf("URL: %s, createRequest error: %v\n", httpurl, err)
+							return
 						}
-
-						req.Header.Set("Accept-Charset", "utf-8")
-						req.Header.Set("Accept-Encoding", "gzip, deflate")
-						req.Header.Set("User-Agent", crawler.config.UserAgent)
 
 						resp, err := crawler.client.Do(req)
 						if err != nil {
@@ -150,12 +147,12 @@ func (crawler *Crawler) parseHTML(rd io.Reader, urlTopo *URLTopological, dir str
 						defer resp.Body.Close()
 
 						if resp.StatusCode != http.StatusOK {
-							crawler.Logger.Printf("URL: %s, status text: %v\n", actualURL.String(), http.StatusText(resp.StatusCode))
+							crawler.Logger.Printf("URL: %s, status text: %v\n", httpurl, http.StatusText(resp.StatusCode))
 							break
 						}
 
 						MIME, _, _ := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-						crawler.Logger.Printf("Found file %s on %v", getFileName(actualURL.Path, ext), actualURL.String())
+						crawler.Logger.Printf("Found file %s on %v", getFileName(actualURL.Path, ext), httpurl)
 						if MIME != mime.TypeByExtension(ext) {
 							crawler.Logger.Printf("URL: %s, MIME type in Content-Type mismatch file extension name", actualURL.String())
 						}
@@ -272,7 +269,7 @@ func MatchMIMEInExts(MIME string, ftypes []string) (string, bool) {
 	if err != nil {
 		return "", false
 	}
-	
+
 	for _, ext := range exts {
 		if _, _, ok := containsAnyExts(ext, ftypes); ok {
 			return ext, true

@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"mime"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -44,7 +45,7 @@ func randomString(n int) string {
 	randomBytes := make([]byte, n)
 	rand.Read(randomBytes)
 	ret := make([]byte, n)
-	
+
 	for i := range randomBytes {
 		idx := randomBytes[i] % uint8(len(characterSet))
 		ret[i] = characterSet[idx]
@@ -100,4 +101,17 @@ func writeBase64ImageFile(uri, dir string) error {
 		}
 	}
 	return errors.New("invalid base64 URI format")
+}
+
+func createRequest(method, url, userAgent string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Accept-Charset", "utf-8")
+	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	req.Header.Set("User-Agent", userAgent)
+
+	return req, nil
 }

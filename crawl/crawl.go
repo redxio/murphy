@@ -30,7 +30,7 @@ type Crawler struct {
 	crawledURL   *sync.Map
 	counter      int64
 	config       *conf.Configuration
-	sem          chan bool
+	semaphore    chan bool
 	URLTopoCh    chan *URLTopological
 	Logger       *log.Logger
 	Server       *headless.Server
@@ -46,7 +46,7 @@ func New(config *conf.Configuration) *Crawler {
 	}
 
 	if config.Option.MaxConcurrency > 0 {
-		crawler.sem = make(chan bool, config.Option.MaxConcurrency)
+		crawler.semaphore = make(chan bool, config.Option.MaxConcurrency)
 	}
 
 	return crawler
@@ -55,17 +55,17 @@ func New(config *conf.Configuration) *Crawler {
 // Crawl ...
 func (crawler *Crawler) Crawl(urlTopo *URLTopological) {
 	defer func() {
-		if crawler.sem != nil && len(crawler.sem) > 0 {
-			<-crawler.sem
+		if crawler.semaphore != nil && len(crawler.semaphore) > 0 {
+			<-crawler.semaphore
 		}
-		
+
 		if atomic.AddInt64(&crawler.counter, -1) == 0 && len(crawler.URLTopoCh) == 0 {
 			close(crawler.URLTopoCh)
 		}
 	}()
 
-	if crawler.sem != nil {
-		crawler.sem <- true
+	if crawler.semaphore != nil {
+		crawler.semaphore <- true
 	}
 	atomic.AddInt64(&crawler.counter, 1)
 
@@ -99,15 +99,11 @@ func (crawler *Crawler) Crawl(urlTopo *URLTopological) {
 		}
 	}
 
-	req, err := http.NewRequest(http.MethodGet, rooturl, nil)
+	req, err := createRequest(http.MethodGet, rooturl, crawler.config.UserAgent, nil)
 	if err != nil {
-		crawler.Logger.Printf("URL: %s, NewRequest error: %v\n", rooturl, err)
+		crawler.Logger.Printf("URL: %s, createRequest error: %v\n", rooturl, err)
 		return
 	}
-
-	req.Header.Set("Accept-Charset", "utf-8")
-	req.Header.Set("Accept-Encoding", "gzip, deflate")
-	req.Header.Set("User-Agent", crawler.config.UserAgent)
 
 	resp, err := crawler.client.Do(req)
 	if err != nil {
