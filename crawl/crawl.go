@@ -30,7 +30,7 @@ type Crawler struct {
 	crawledURL   *sync.Map
 	counter      int64
 	config       *conf.Configuration
-	semaphore    chan bool
+	Semaphore    chan bool
 	URLTopoCh    chan *URLTopological
 	Logger       *log.Logger
 	Server       *headless.Server
@@ -45,18 +45,14 @@ func New(config *conf.Configuration) *Crawler {
 		config:     config,
 	}
 
-	if config.Option.MaxConcurrency > 0 {
-		crawler.semaphore = make(chan bool, config.Option.MaxConcurrency)
-	}
-
 	return crawler
 }
 
 // Crawl ...
 func (crawler *Crawler) Crawl(urlTopo *URLTopological) {
 	defer func() {
-		if crawler.semaphore != nil && len(crawler.semaphore) > 0 {
-			<-crawler.semaphore
+		if crawler.Semaphore != nil && len(crawler.Semaphore) > 0 {
+			<-crawler.Semaphore
 		}
 
 		if atomic.AddInt64(&crawler.counter, -1) == 0 && len(crawler.URLTopoCh) == 0 {
@@ -64,9 +60,6 @@ func (crawler *Crawler) Crawl(urlTopo *URLTopological) {
 		}
 	}()
 
-	if crawler.semaphore != nil {
-		crawler.semaphore <- true
-	}
 	atomic.AddInt64(&crawler.counter, 1)
 
 	dir := filepath.Join(crawler.config.Dir, urlTopo.URL.Hostname())

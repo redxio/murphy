@@ -73,7 +73,7 @@ func start() {
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
 	crawler.URLTopoCh = make(chan *crawl.URLTopological, 10)
-	
+
 	go func() {
 		for _, rawurl := range flag.Args() {
 			u, err := url.ParseRequestURI(rawurl)
@@ -95,6 +95,11 @@ loop:
 			if !ok {
 				break loop
 			}
+
+			if crawler.Semaphore != nil {
+				crawler.Semaphore <- true
+			}
+
 			go crawler.Crawl(urlTopo)
 		}
 	}
@@ -102,6 +107,10 @@ loop:
 
 func newCrawler(config *conf.Configuration) (*crawl.Crawler, error) {
 	crawler := crawl.New(config)
+
+	if config.Option.MaxConcurrency > 0 {
+		crawler.Semaphore = make(chan bool, config.Option.MaxConcurrency)
+	}
 
 	if _, ok := crawl.MatchMIMEInExts("text/html", config.FileTypes); ok {
 		crawler.DownloadHTML = true
@@ -124,7 +133,7 @@ func newCrawler(config *conf.Configuration) (*crawl.Crawler, error) {
 		if err != nil {
 			return nil, err
 		}
-		
+
 		w := io.MultiWriter(f, os.Stdout)
 		crawler.Logger = log.New(w, "", log.LstdFlags)
 	} else {
